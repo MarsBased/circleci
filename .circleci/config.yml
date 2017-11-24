@@ -1,0 +1,72 @@
+# Ruby CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-ruby/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version you desire here
+       - image: arteromars/circleci
+       - image: circleci/postgres:9.6.3
+         environment:
+         - POSTGRES_USER: circleci
+       - image: redis:2.8.19
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "Gemfile.lock" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run:
+          name: install dependencies
+          command: |
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+      - save_cache:
+          paths:
+            - ./vendor/bundle
+          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
+
+      # Database setup
+      - run:
+          name: Prepare DB
+          command: |
+            mv config/database.ci.yml config/database.yml
+            bundle exec rake db:create
+            bundle exec rake db:schema:load
+
+      # Download and restore bower dependecies
+      - restore_cache:
+          paths:
+            - ./vendor/assets/bower_components
+          keys:
+          - v1-bower-{{ checksum "bower.json" }}
+      - run:
+          name: Bower dependencies
+          command: |
+            sudo npm install bower -g
+            bundle exec rake bower:install
+            bundle exec rake bower:resolve
+      - save_cache:
+          paths:
+            - ./vendor/assets/bower_components
+          key: v1-bower-{{ checksum "bower.json" }}
+
+      # run tests!
+      - run:
+          name: run tests
+          command: |
+            bundle exec rspec
+
+      # collect reports
+      - store_test_results:
+          path: /tmp/test-results
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: test-results
