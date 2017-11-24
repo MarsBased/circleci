@@ -1,2 +1,3 @@
 #!/bin/sh
 mkdir .circleci
+curl https://raw.githubusercontent.com/MarsBased/circleci/master/.circleci/config.yml\ > ./.circleci/config.yml
