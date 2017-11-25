@@ -11,7 +11,7 @@ jobs:
        - image: circleci/postgres:9.6.3
          environment:
          - POSTGRES_USER: circleci
-       - image: redis:2.8.19
+      #  - image: redis:2.8.19
 
     working_directory: ~/repo
 
@@ -41,22 +41,13 @@ jobs:
             bundle exec rake db:create
             bundle exec rake db:schema:load
 
-      # Download and restore bower dependecies
-      - restore_cache:
-          paths:
-            - ./vendor/assets/bower_components
-          keys:
-          - v1-bower-{{ checksum "bower.json" }}
+      # Restore bower dependecies
       - run:
           name: Bower dependencies
           command: |
             sudo npm install bower -g
             bundle exec rake bower:install
             bundle exec rake bower:resolve
-      - save_cache:
-          paths:
-            - ./vendor/assets/bower_components
-          key: v1-bower-{{ checksum "bower.json" }}
 
       # run tests!
       - run:
