@@ -1,4 +1,4 @@
 #!/bin/sh
 mkdir .circleci
 curl https://raw.githubusercontent.com/MarsBased/circleci/master/config/rails/.circleci/config.yml\ > ./.circleci/config.yml
-curl https://raw.githubusercontent.com/MarsBased/circleci/master/config/rails/confing/database.ci.yml\ > ./config/database.ci.yml
+curl https://raw.githubusercontent.com/MarsBased/circleci/master/config/rails/config/database.ci.yml\ > ./config/database.ci.yml
