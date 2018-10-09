@@ -1,6 +1,6 @@
 # MarsBased Circle CI project configuration
 
-This repository has the required Circe CI configuration to the MarsBased Projects
+This repository has the required Circe CI configuration to the MarsBased Projects.
 
 If you want had the configuration in your rails project execute the next command in your application's root path:
 
