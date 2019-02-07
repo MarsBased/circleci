@@ -9,7 +9,7 @@ jobs:
       - image: circleci/ruby:2.5.3-node-browsers # specify the version you desire here
         environment:
           - RAILS_ENV: test
-      - image: circleci/postgres:9.6.3
+      - image: circleci/postgres:10.6
         environment:
           - POSTGRES_USER: circleci
       # - image: redis:2.8.19
