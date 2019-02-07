@@ -1,37 +1,51 @@
 # Ruby CircleCI 2.0 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-ruby/ for more details
-#
+
 version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
-       - image: marsbased/circleci
-       - image: circleci/postgres:9.6.3
-         environment:
-         - POSTGRES_USER: circleci
-      #  - image: redis:2.8.19
+      - image: circleci/ruby:2.5.3-node-browsers # specify the version you desire here
+        environment:
+          - RAILS_ENV: test
+      - image: circleci/postgres:10.6
+        environment:
+          - POSTGRES_USER: circleci
+      # - image: redis:2.8.19
 
     working_directory: ~/repo
 
     steps:
       - checkout
 
-      # Download and cache dependencies
+      # Download and cache ruby dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "Gemfile.lock" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-bundle-{{ checksum "Gemfile.lock" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-bundle
       - run:
-          name: install dependencies
+          name: Install ruby dependencies
           command: |
             bundle install --jobs=4 --retry=3 --path vendor/bundle
       - save_cache:
           paths:
             - ./vendor/bundle
-          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
+          key: v1-bundle-{{ checksum "Gemfile.lock" }}
+
+      # Install and cache npm modules using Yarn
+      - restore_cache:
+          keys:
+            - v1-yarn-{{ checksum "yarn.lock" }}
+            - v1-yarn-
+      - run:
+          name: Install JS dependencies
+          command: yarn install --cache-folder ~/.cache/yarn --production false
+      - save_cache:
+          key: v1-yarn-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
 
       # Database setup
       - run:
@@ -41,23 +55,13 @@ jobs:
             bundle exec rake db:create
             bundle exec rake db:schema:load
 
-      # Restore bower dependecies
-      - run:
-          name: Bower dependencies
-          command: |
-            sudo npm install bower -g
-            bundle exec rake bower:install
-            bundle exec rake bower:resolve
-
-      # run tests!
+      # Run tests!
       - run:
           name: run tests
           command: |
-            bundle exec rspec
-
-      # collect reports
+            bundle exec rspec --format RspecJunitFormatter \
+                              --out test_results/rspec.xml \
+                              --format progress
+      # Collect reports
       - store_test_results:
-          path: /tmp/test-results
-      - store_artifacts:
-          path: /tmp/test-results
-          destination: test-results
+          path: test_results
