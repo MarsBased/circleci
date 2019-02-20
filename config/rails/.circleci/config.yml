@@ -62,6 +62,12 @@ jobs:
             bundle exec rspec --format RspecJunitFormatter \
                               --out test_results/rspec.xml \
                               --format progress
+      # Rubocop
+      - run:
+          name: rubocop
+          command: |
+            bundle exec rubocop .
+
       # Collect reports
       - store_test_results:
           path: test_results
